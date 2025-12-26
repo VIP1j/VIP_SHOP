@@ -3,177 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP SHOP | LIVE</title>
+    <title>VIP SHOP | FIXED</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root { --gold: #d4af37; --dark: #0a0a0a; --gray: #1a1a1a; --admin: #ff4d4d; --green: #28a745; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .hidden { display: none !important; }
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 10001; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--gray); padding: 35px; border-radius: 25px; border: 1px solid #333; max-width: 380px; width: 90%; text-align: center; }
-        input, textarea { width: 100%; padding: 14px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 12px; font-size: 1rem; box-sizing: border-box; outline: none; }
-        .main-btn { background: var(--gold); color: black; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; }
-        .user-header { background: var(--gray); padding: 15px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 0 auto 20px auto; text-align: center; }
-        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .vip { border: 1px solid var(--gold); color: var(--gold); }
-        .admin { border: 1px solid var(--admin); color: var(--admin); }
-        .product-card { background: var(--gray); border: 1px solid #333; border-radius: 20px; padding: 20px; margin-bottom: 25px; text-align: center; }
-        .product-card img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 15px; }
-        .price { color: var(--gold); font-size: 1.8rem; font-weight: bold; margin: 15px 0; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 15px; }
-        .modal-box { background: #1a1a1a; padding: 30px 20px; border-radius: 25px; border: 2px solid var(--gold); width: 100%; max-width: 380px; position: relative; text-align: center; }
-        .tg-btn { display: block; background: #0088cc; color: white; text-align: center; padding: 15px; border-radius: 15px; text-decoration: none; font-weight: bold; margin-top: 15px; }
-        .admin-panel { background: #111; border: 1px solid #444; padding: 20px; border-radius: 20px; margin: 20px auto; max-width: 400px; }
+        .auth-card { background: var(--gray); padding: 30px; border-radius: 20px; border: 1px solid #333; width: 90%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
+        .main-btn { background: var(--gold); color: black; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        .user-header { background: var(--gray); padding: 15px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; text-align: center; }
+        .product-card { background: var(--gray); border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; text-align: center; }
+        .product-card img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 10px; }
+        .price { color: var(--gold); font-size: 1.5rem; font-weight: bold; margin: 10px 0; }
+        .admin-panel { background: #111; border: 1px solid #444; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+
     <div id="auth-screen">
         <div class="auth-card">
             <h1 style="color: var(--gold);">VIP SHOP</h1>
             <input type="text" id="user-id" placeholder="Ваш ID">
             <input type="password" id="user-pass" placeholder="Пароль">
-            <button class="main-btn" onclick="login()">ВХОД / РЕГИСТРАЦИЯ</button>
+            <button class="main-btn" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
+
     <div id="main-content" class="hidden">
         <div class="user-header">
             <div id="role-badge"></div>
-            <div id="id-display" style="color: #666;"></div>
-            <div id="bonus-info" class="hidden" style="margin-top:10px;">
-                <div style="color:#00ff88; font-size:1.5rem; font-weight:bold;" id="balance-val">0</div>
-                <div style="font-size:0.6rem; color:#00ff88;">БАЛАНС</div>
-            </div>
-            <button onclick="location.reload()" style="background:none; border:none; color:#444; text-decoration:underline; cursor:pointer;">Выйти</button>
+            <div id="id-display" style="color: #888; font-size: 0.9rem;"></div>
+            <button onclick="location.reload()" style="background:none; border:none; color:var(--admin); cursor:pointer;">Выйти</button>
         </div>
+
         <div id="admin-controls" class="hidden">
-            <div id="owner-panel" class="admin-panel hidden" style="border-color: var(--admin);">
-                <h3>ГЛАВНАЯ ПАНЕЛЬ</h3>
+            <div id="owner-panel" class="admin-panel hidden">
+                <h3 style="color:var(--admin);">АДМИН</h3>
                 <input type="text" id="target-vip-id" placeholder="ID игрока для VIP">
-                <button onclick="grantVip()" style="background:var(--green); width:100%; padding:10px; border:none; color:white;">ВЫДАТЬ VIP</button>
-                <hr style="margin:20px 0; border:1px solid #222;">
-                <input type="text" id="bonus-user-id" placeholder="ID для Бонусов">
-                <input type="number" id="bonus-amount" placeholder="Количество">
-                <button onclick="addBonuses()" style="background:#00ff88; width:100%; padding:10px; border:none;">НАЧИСЛИТЬ</button>
+                <button onclick="grantVip()" style="background:var(--green); border:none; padding:10px; color:white; width:100%; border-radius:5px;">ВЫДАТЬ VIP</button>
             </div>
+
             <div id="seller-panel" class="admin-panel hidden">
-                <h3 style="color:var(--gold);">ДОБАВИТЬ ТОВАР</h3>
+                <h3 style="color:var(--gold);">НОВЫЙ ТОВАР</h3>
                 <input type="text" id="p-title" placeholder="Название">
                 <input type="text" id="p-img" placeholder="Ссылка на фото">
-                <textarea id="p-desc" rows="3" placeholder="Описание"></textarea>
                 <input type="text" id="p-price" placeholder="Цена">
-                <input type="text" id="p-tg" placeholder="Telegram ник">
+                <input type="text" id="p-tg" placeholder="Твой TG (без @)">
                 <button class="main-btn" onclick="addProduct()">ОПУБЛИКОВАТЬ</button>
             </div>
         </div>
-        <div class="shop-container"><div id="products-list"></div></div>
+
+        <div id="products-list"></div>
     </div>
-    <div id="modal" class="modal-overlay hidden">
-        <div class="modal-box"><div onclick="closeModal()" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:25px;">×</div><div id="modal-body"></div></div>
-    </div>
+
     <script>
-        // ДАННЫЕ ИЗ ТВОИХ СКРИНШОТОВ
         const firebaseConfig = {
-            apiKey: "AIzaSyC0Y-x7tByaRo9TUUdqeRXizYJPNEyflQU", 
-            databaseURL: "https://vip-shop-9e40b-default-rtdb.firebaseio.com/", 
-            projectId: "vip-shop-9e40b" 
+            apiKey: "AIzaSyC0Y-x7tByaRo9TUUdqeRXizYJPNEyflQU",
+            databaseURL: "https://vip-shop-9e40b-default-rtdb.firebaseio.com/",
+            projectId: "vip-shop-9e40b"
         };
 
         firebase.initializeApp(firebaseConfig);
         const fb_db = firebase.database();
+        
         const OWNER_ID = "NO.00155616";
         const OWNER_PASS = "34580909";
-        let userRole = 'guest';
+        let userRole = 'user';
         let currentUserId = '';
 
+        // Функция для очистки ID от точек (специально для Firebase)
+        function cleanId(id) { return id.replace(/\./g, '_'); }
+
         function login() {
-            const id = document.getElementById('user-id').value.trim();
+            const rawId = document.getElementById('user-id').value.trim();
             const pass = document.getElementById('user-pass').value.trim();
-            if (!id || !pass) return;
-            fb_db.ref('users/' + id).once('value').then((snapshot) => {
+            if (!rawId || !pass) return;
+
+            const safeId = cleanId(rawId);
+            currentUserId = rawId;
+
+            fb_db.ref('users/' + safeId).once('value').then((snapshot) => {
                 const userData = snapshot.val();
-                if (id === OWNER_ID) {
-                    if (pass !== OWNER_PASS) return alert("Неверный пароль владельца!");
+                
+                if (rawId === OWNER_ID) {
+                    if (pass !== OWNER_PASS) return alert("Ошибка пароля владельца!");
                     userRole = 'owner';
                 } else if (userData) {
-                    if (userData.pass !== pass) return alert("ID занят!");
+                    if (userData.pass !== pass) return alert("Этот ID уже занят другим паролем!");
                     userRole = userData.vip ? 'vip' : 'user';
                 } else {
-                    fb_db.ref('users/' + id).set({ pass: pass, vip: false, bonuses: 0 });
+                    fb_db.ref('users/' + safeId).set({ pass: pass, vip: false });
                     userRole = 'user';
                 }
-                currentUserId = id;
-                setupUI(id);
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                listenToProducts();
-            });
+
+                showMain();
+            }).catch(e => alert("Ошибка базы: " + e.message));
         }
-        function setupUI(id) {
+
+        function showMain() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('id-display').innerText = "Ваш ID: " + currentUserId;
+            
             const badge = document.getElementById('role-badge');
-            document.getElementById('id-display').innerText = "ID: " + id;
             if (userRole === 'owner') {
-                badge.innerHTML = '<span class="status-badge admin">ВЛАДЕЛЕЦ</span>';
+                badge.innerHTML = '<b style="color:red;">[ГЛАВНЫЙ АДМИН]</b>';
+                document.getElementById('admin-controls').classList.remove('hidden');
                 document.getElementById('owner-panel').classList.remove('hidden');
                 document.getElementById('seller-panel').classList.remove('hidden');
-                document.getElementById('admin-controls').classList.remove('hidden');
             } else if (userRole === 'vip') {
-                badge.innerHTML = '<span class="status-badge vip">VIP ПРОДАВЕЦ</span>';
-                document.getElementById('seller-panel').classList.remove('hidden');
+                badge.innerHTML = '<b style="color:gold;">[VIP ПРОДАВЕЦ]</b>';
                 document.getElementById('admin-controls').classList.remove('hidden');
+                document.getElementById('seller-panel').classList.remove('hidden');
             } else {
-                badge.innerHTML = '<span class="status-badge" style="border:1px solid #444; color:#555;">ПОКУПАТЕЛЬ</span>';
+                badge.innerHTML = '<b style="color:gray;">[ПОКУПАТЕЛЬ]</b>';
             }
-            fb_db.ref('users/' + id + '/bonuses').on('value', (s) => {
-                document.getElementById('bonus-info').classList.remove('hidden');
-                document.getElementById('balance-val').innerText = s.val() || 0;
-            });
+            loadProducts();
         }
+
         function addProduct() {
             const title = document.getElementById('p-title').value;
             const img = document.getElementById('p-img').value;
-            const desc = document.getElementById('p-desc').value;
             const price = document.getElementById('p-price').value;
-            const tg = document.getElementById('p-tg').value.replace('@','');
+            const tg = document.getElementById('p-tg').value;
+            
             if (!title || !price || !tg) return alert("Заполни поля!");
-            const newRef = fb_db.ref('products').push();
-            newRef.set({ id: newRef.key, title, img, desc, price, tg, owner: currentUserId });
-            alert("Добавлено!");
+            
+            fb_db.ref('products').push({
+                title, img, price, tg, owner: cleanId(currentUserId)
+            });
+            alert("Товар добавлен!");
         }
-        function listenToProducts() {
+
+        function loadProducts() {
             fb_db.ref('products').on('value', (snapshot) => {
                 const list = document.getElementById('products-list');
-                list.innerHTML = "<h2 style='text-align:center; color:var(--gold);'>ВИТРИНА</h2>";
+                list.innerHTML = "";
                 const data = snapshot.val();
                 if (!data) return;
-                Object.values(data).reverse().forEach(item => {
+
+                Object.keys(data).reverse().forEach(key => {
+                    const item = data[key];
                     const card = document.createElement('div');
                     card.className = 'product-card';
-                    card.onclick = () => openModal(item);
-                    card.innerHTML = `<img src="${item.img || ''}"><h3>${item.title}</h3><div class="price">${item.price}</div>` +
-                        ((userRole === 'owner' || (userRole === 'vip' && item.owner === currentUserId)) ? `<button style="color:red; background:none; border:none; cursor:pointer;" onclick="event.stopPropagation(); deleteProduct('${item.id}')">Удалить</button>` : '');
+                    card.innerHTML = `
+                        ${item.img ? `<img src="${item.img}">` : ''}
+                        <h3>${item.title}</h3>
+                        <div class="price">${item.price}</div>
+                        <a href="https://t.me/${item.tg}" style="color:cyan;">Связаться</a>
+                        ${userRole === 'owner' ? `<br><button onclick="deleteProduct('${key}')" style="color:red; margin-top:10px;">Удалить</button>` : ''}
+                    `;
                     list.appendChild(card);
                 });
             });
         }
-        function deleteProduct(prodId) { if (confirm("Удалить?")) fb_db.ref('products/' + prodId).remove(); }
+
+        function deleteProduct(key) { if(confirm("Удалить?")) fb_db.ref('products/' + key).remove(); }
+
         function grantVip() {
-            const id = document.getElementById('target-vip-id').value.trim();
-            if (id) fb_db.ref('users/' + id + '/vip').set(true).then(() => alert("VIP выдан!"));
+            const target = cleanId(document.getElementById('target-vip-id').value.trim());
+            if (target) {
+                fb_db.ref('users/' + target + '/vip').set(true);
+                alert("VIP выдан!");
+            }
         }
-        function addBonuses() {
-            const id = document.getElementById('bonus-user-id').value.trim();
-            const amt = parseInt(document.getElementById('bonus-amount').value);
-            if (!id || isNaN(amt)) return;
-            fb_db.ref('users/' + id + '/bonuses').transaction((c) => (c || 0) + amt);
-            alert("Готово!");
-        }
-        function openModal(item) {
-            const body = document.getElementById('modal-body');
-            body.innerHTML = `<h2>${item.title}</h2><p>${item.desc || ''}</p><div class="price">${item.price}</div><a href="https://t.me/${item.tg}" target="_blank" class="tg-btn">КУПИТЬ В TG</a>`;
-            document.getElementById('modal').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
     </script>
 </body>
 </html>
