@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP SHOP | Платформа</title>
+    <style>
+        :root { --gold: #d4af37; --dark: #0a0a0a; --gray: #1a1a1a; --admin: #ff4d4d; --green: #28a745; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; }
+        .hidden { display: none !important; }
+        
+        /* БЛОК АВТОРИЗАЦИИ И МЕНЮ */
+        .auth-card { background: var(--gray); padding: 30px; border-radius: 20px; border: 1px solid #333; max-width: 400px; margin: 20px auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .auth-card h1 { color: var(--gold); margin: 0 0 20px 0; font-size: 1.8rem; }
+        
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #111; border: 1px solid #444; color: white; border-radius: 10px; font-size: 1rem; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--gold); }
+        
+        .main-btn { background: var(--gold); color: black; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; text-transform: uppercase; transition: 0.3s; }
+        .main-btn:hover { background: #b8972f; }
+
+        /* ПРОФИЛЬ */
+        .user-info { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .vip { border: 1px solid var(--gold); color: var(--gold); }
+        .admin { border: 1px solid var(--admin); color: var(--admin); }
+        .bonus-display { color: #00ff88; font-size: 1.8rem; font-weight: bold; display: block; }
+
+        /* КАРТОЧКИ ТОВАРОВ */
+        .product-card { background: var(--gray); border: 1px solid #333; border-radius: 15px; padding: 15px; margin: 15px auto; cursor: pointer; max-width: 400px; text-align: center; }
+        .product-card img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; }
+        .price { color: var(--gold); font-size: 1.4rem; font-weight: bold; margin-top: 10px; }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .modal-box { background: #1a1a1a; padding: 30px 20px 20px 20px; border-radius: 20px; border: 2px solid var(--gold); width: 100%; max-width: 380px; position: relative; text-align: center; }
+        .close-x { position: absolute; top: 10px; right: 10px; width: 35px; height: 35px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
+
+        .tg-link { display: block; background: #0088cc; color: white; text-align: center; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .admin-panel { background: #111; border: 1px solid #444; padding: 15px; border-radius: 15px; margin: 15px auto; max-width: 400px; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-section" class="auth-card">
+        <div id="login-form">
+            <h1>VIP SHOP</h1>
+            <input type="text" id="user-id" placeholder="Ваш ID">
+            <input type="password" id="user-pass" placeholder="Пароль">
+            <button class="main-btn" onclick="login()">Войти в систему</button>
+        </div>
+
+        <div id="user-menu" class="hidden">
+            <div class="user-info">
+                <div id="role-badge"></div>
+                <div id="id-display" style="font-size: 1rem; color: #888;"></div>
+                <div id="bonus-info" class="hidden" style="margin-top: 10px;">
+                    <span class="bonus-display" id="balance-val">0</span>
+                    <span style="color: #00ff88; font-size: 0.7rem; font-weight: bold;">БОНУСНЫЙ БАЛАНС</span>
+                </div>
+            </div>
+            <button onclick="location.reload()" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem; text-decoration:underline;">Сменить аккаунт</button>
+        </div>
+    </div>
+
+    <div id="shop-content" class="hidden">
+        
+        <div id="owner-panel" class="admin-panel hidden" style="border-color: var(--admin);">
+            <h3 style="color: var(--admin); margin-top: 0;">АДМИН-ЦЕНТР</h3>
+            <input type="text" id="target-vip-id" placeholder="ID игрока для VIP">
+            <div style="display: flex; gap: 5px;">
+                <button onclick="grantVip()" style="background: var(--green); color: white; padding: 8px;">ВЫДАТЬ VIP</button>
+                <button onclick="revokeVip()" style="background: var(--admin); color: white; padding: 8px;">УДАЛИТЬ VIP</button>
+            </div>
+            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+            <input type="text" id="bonus-user-id" placeholder="ID игрока для бонусов">
+            <input type="number" id="bonus-amount" placeholder="Сумма">
+            <button onclick="addBonuses()" style="background: #00ff88; color: black; padding: 10px; font-weight: bold; width: 100%; border: none; border-radius: 8px; margin-top: 5px;">НАЧИСЛИТЬ БОНУСЫ</button>
+        </div>
+
+        <div id="seller-panel" class="admin-panel hidden">
+            <h3 style="color: var(--gold); margin-top: 0;">СОЗДАТЬ ТОВАР</h3>
+            <input type="text" id="p-title" placeholder="Название товара">
+            <input type="text" id="p-img" placeholder="Ссылка на фото">
+            <textarea id="p-desc" rows="3" placeholder="Описание товара"></textarea>
+            <input type="text" id="p-price" placeholder="Цена (например: 1000 бонусов)">
+            <input type="text" id="p-tg" placeholder="Ваш Telegram (без @)">
+            <button class="main-btn" onclick="addProduct()">Опубликовать</button>
+        </div>
+
+        <div id="products-list"></div>
+    </div>
+
+    <div id="modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="close-x" onclick="closeModal()">×</div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const OWNER_ID = "NO.00155616";
+        const OWNER_PASS = "34580909";
+        let userRole = 'user';
+
+        function login() {
+            const id = document.getElementById('user-id').value.trim();
+            const pass = document.getElementById('user-pass').value.trim();
+            if (!id || !pass) return alert("Введите данные!");
+
+            // Проверка пароля (один ID - один пароль)
+            if (id === OWNER_ID) {
+                if (pass !== OWNER_PASS) return alert("Неверный пароль владельца!");
+                userRole = 'owner';
+                showProfile(id, 'admin', 'ВЛАДЕЛЬЦЕЦ СИСТЕМЫ');
+            } else {
+                let db = JSON.parse(localStorage.getItem('shop_users_db') || "{}");
+                if (db[id]) {
+                    if (db[id] !== pass) return alert("Неверный пароль для этого ID!");
+                } else {
+                    db[id] = pass;
+                    localStorage.setItem('shop_users_db', JSON.stringify(db));
+                }
+
+                const vips = JSON.parse(localStorage.getItem('confirmed_vips') || "[]");
+                if (vips.includes(id)) {
+                    userRole = 'vip';
+                    showProfile(id, 'vip', 'VIP ПРОДАВЕЦ');
+                } else {
+                    userRole = 'user';
+                    showProfile(id, '', 'ПОКУПАТЕЛЬ');
+                }
+            }
+
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            document.getElementById('shop-content').classList.remove('hidden');
+            renderProducts();
+        }
+
+        function showProfile(id, cssClass, label) {
+            const badge = document.getElementById('role-badge');
+            const bonuses = JSON.parse(localStorage.getItem('bonuses_db') || "{}");
+            
+            badge.innerHTML = `<span class="status-badge ${cssClass}" style="${cssClass===''?'border:1px solid #555':''}">${label}</span>`;
+            document.getElementById('id-display').innerText = "ID: " + id;
+            
+            if (userRole === 'owner' || userRole === 'vip') {
+                document.getElementById('bonus-info').classList.remove('hidden');
+                document.getElementById('balance-val').innerText = bonuses[id] || 0;
+                document.getElementById('seller-panel').classList.remove('hidden');
+                if(userRole === 'owner') document.getElementById('owner-panel').classList.remove('hidden');
+            }
+        }
+
+        function addProduct() {
+            const title = document.getElementById('p-title').value;
+            const img = document.getElementById('p-img').value;
+            const desc = document.getElementById('p-desc').value;
+            const price = document.getElementById('p-price').value;
+            const tg = document.getElementById('p-tg').value.replace('@', '');
+
+            if (!title || !price || !tg) return alert("Заполни данные!");
+
+            const products = JSON.parse(localStorage.getItem('shop_items') || "[]");
+            products.push({ id: Date.now(), title, img, desc, price, tg });
+            localStorage.setItem('shop_items', JSON.stringify(products));
+            
+            alert("Товар добавлен!");
+            renderProducts();
+            document.querySelectorAll('#seller-panel input, #seller-panel textarea').forEach(el => el.value = "");
+        }
+
+        function renderProducts() {
+            const list = document.getElementById('products-list');
+            const items = JSON.parse(localStorage.getItem('shop_items') || "[]");
+            list.innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top:30px;'>ВИТРИНА ТОВАРОВ</h2>";
+            
+            items.reverse().forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.onclick = () => openModal(item);
+                card.innerHTML = `
+                    ${item.img ? `<img src="${item.img}">` : '<div style="height:100px; background:#222; border-radius:10px;"></div>'}
+                    <h3 style="margin:10px 0;">${item.title}</h3>
+                    <div class="price">${item.price}</div>
+                    ${(userRole === 'owner' || userRole === 'vip') ? `<button style="background:none; color:red; border:none; cursor:pointer; font-size:0.7rem; margin-top:10px;" onclick="event.stopPropagation(); deleteProduct(${item.id})">Удалить объявление</button>` : ''}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function openModal(item) {
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `
+                <h2 style="color:var(--gold); margin:0;">${item.title}</h2>
+                <div style="text-align:left; background:#111; padding:15px; border-radius:12px; margin:15px 0; color:#bbb; font-size:0.9rem; max-height:200px; overflow-y:auto; border:1px solid #333;">${item.desc || 'Описание отсутствует'}</div>
+                <div class="price" style="font-size:2rem;">${item.price}</div>
+                <a href="https://t.me/${item.tg}" target="_blank" class="tg-link">Связаться с продавцом (@${item.tg})</a>
+            `;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        function deleteProduct(id) {
+            if(!confirm("Удалить?")) return;
+            let items = JSON.parse(localStorage.getItem('shop_items') || "[]");
+            items = items.filter(i => i.id !== id);
+            localStorage.setItem('shop_items', JSON.stringify(items));
+            renderProducts();
+        }
+
+        function grantVip() {
+            let id = document.getElementById('target-vip-id').value.trim();
+            let vips = JSON.parse(localStorage.getItem('confirmed_vips') || "[]");
+            if (id && !vips.includes(id)) { vips.push(id); localStorage.setItem('confirmed_vips', JSON.stringify(vips)); alert("VIP выдан!"); }
+        }
+
+        function revokeVip() {
+            let id = document.getElementById('target-vip-id').value.trim();
+            let vips = JSON.parse(localStorage.getItem('confirmed_vips') || "[]");
+            vips = vips.filter(v => v !== id);
+            localStorage.setItem('confirmed_vips', JSON.stringify(vips));
+            alert("VIP удален!");
+        }
+
+        function addBonuses() {
+            let id = document.getElementById('bonus-user-id').value.trim();
+            let amt = parseInt(document.getElementById('bonus-amount').value);
+            if(!id || isNaN(amt)) return;
+            let bdb = JSON.parse(localStorage.getItem('bonuses_db') || "{}");
+            bdb[id] = (bdb[id] || 0) + amt;
+            localStorage.setItem('bonuses_db', JSON.stringify(bdb));
+            alert("Бонусы начислены!");
+        }
+    </script>
+</body>
+</html>
