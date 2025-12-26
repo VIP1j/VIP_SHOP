@@ -3,22 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP SHOP | FIXED</title>
+    <title>VIP SHOP | СИСТЕМА УПРАВЛЕНИЯ</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
-        :root { --gold: #d4af37; --dark: #0a0a0a; --gray: #1a1a1a; --admin: #ff4d4d; --green: #28a745; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        :root { --gold: #d4af37; --dark: #0a0a0a; --gray: #1a1a1a; --admin: #ff4d4d; --green: #28a745; --blue: #0088cc; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; }
         .hidden { display: none !important; }
+        
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 10001; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: var(--gray); padding: 30px; border-radius: 20px; border: 1px solid #333; width: 90%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-        .main-btn { background: var(--gold); color: black; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; outline: none; }
+        .main-btn { background: var(--gold); color: black; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; }
+
         .user-header { background: var(--gray); padding: 15px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; text-align: center; }
-        .product-card { background: var(--gray); border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; text-align: center; }
-        .product-card img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 10px; }
-        .price { color: var(--gold); font-size: 1.5rem; font-weight: bold; margin: 10px 0; }
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; }
+        .vip { border: 1px solid var(--gold); color: var(--gold); }
+        .admin { border: 1px solid var(--admin); color: var(--admin); }
+
+        .balance-box { margin-top: 10px; padding: 10px; background: #000; border-radius: 10px; border: 1px dashed #333; }
+        .balance-val { color: #00ff88; font-size: 1.4rem; font-weight: bold; }
+
         .admin-panel { background: #111; border: 1px solid #444; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+        .control-btn { border: none; padding: 10px; color: white; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: bold; }
+
+        .product-card { background: var(--gray); border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; text-align: center; position: relative; }
+        .product-card img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 10px; }
+        .price { color: var(--gold); font-size: 1.6rem; font-weight: bold; margin: 10px 0; }
+        .delete-btn { background: var(--admin); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -26,9 +39,9 @@
     <div id="auth-screen">
         <div class="auth-card">
             <h1 style="color: var(--gold);">VIP SHOP</h1>
-            <input type="text" id="user-id" placeholder="Ваш ID">
+            <input type="text" id="user-id" placeholder="Ваш ID (например NO.123)">
             <input type="password" id="user-pass" placeholder="Пароль">
-            <button class="main-btn" onclick="login()">ВОЙТИ</button>
+            <button class="main-btn" onclick="login()">ВХОД / РЕГИСТРАЦИЯ</button>
         </div>
     </div>
 
@@ -36,22 +49,31 @@
         <div class="user-header">
             <div id="role-badge"></div>
             <div id="id-display" style="color: #888; font-size: 0.9rem;"></div>
-            <button onclick="location.reload()" style="background:none; border:none; color:var(--admin); cursor:pointer;">Выйти</button>
+            <div class="balance-box">
+                <div class="balance-val" id="balance-val">0</div>
+                <div style="font-size: 0.7rem; color: #888;">ВАШ БАЛАНС</div>
+            </div>
+            <button onclick="location.reload()" style="background:none; border:none; color:var(--admin); margin-top:10px; cursor:pointer; text-decoration: underline;">Выйти</button>
         </div>
 
         <div id="admin-controls" class="hidden">
             <div id="owner-panel" class="admin-panel hidden">
-                <h3 style="color:var(--admin);">АДМИН</h3>
-                <input type="text" id="target-vip-id" placeholder="ID игрока для VIP">
-                <button onclick="grantVip()" style="background:var(--green); border:none; padding:10px; color:white; width:100%; border-radius:5px;">ВЫДАТЬ VIP</button>
+                <h3 style="color:var(--admin);">УПРАВЛЕНИЕ СЕРВЕРОМ</h3>
+                <input type="text" id="target-id" placeholder="ID игрока (через точку)">
+                <button class="control-btn" style="background:var(--green);" onclick="manageVip(true)">ВЫДАТЬ VIP</button>
+                <button class="control-btn" style="background:var(--admin);" onclick="manageVip(false)">СНЯТЬ VIP</button>
+                <hr style="border: 0.5px solid #222; margin: 15px 0;">
+                <input type="number" id="bonus-amt" placeholder="Количество бонусов">
+                <button class="control-btn" style="background:var(--blue);" onclick="addBonuses()">НАЧИСЛИТЬ БОНУСЫ</button>
             </div>
 
             <div id="seller-panel" class="admin-panel hidden">
-                <h3 style="color:var(--gold);">НОВЫЙ ТОВАР</h3>
-                <input type="text" id="p-title" placeholder="Название">
+                <h3 style="color:var(--gold);">ДОБАВИТЬ ТОВАР</h3>
+                <input type="text" id="p-title" placeholder="Название товара">
                 <input type="text" id="p-img" placeholder="Ссылка на фото">
-                <input type="text" id="p-price" placeholder="Цена">
-                <input type="text" id="p-tg" placeholder="Твой TG (без @)">
+                <textarea id="p-desc" placeholder="Описание"></textarea>
+                <input type="text" id="p-price" placeholder="Цена (например 500$)">
+                <input type="text" id="p-tg" placeholder="Ваш Telegram ник">
                 <button class="main-btn" onclick="addProduct()">ОПУБЛИКОВАТЬ</button>
             </div>
         </div>
@@ -74,75 +96,101 @@
         let userRole = 'user';
         let currentUserId = '';
 
-        // Функция для очистки ID от точек (специально для Firebase)
-        function cleanId(id) { return id.replace(/\./g, '_'); }
+        // Чистим ID от точек для Firebase
+        function clean(id) { return id.replace(/\./g, '_'); }
 
         function login() {
             const rawId = document.getElementById('user-id').value.trim();
             const pass = document.getElementById('user-pass').value.trim();
             if (!rawId || !pass) return;
 
-            const safeId = cleanId(rawId);
+            const safeId = clean(rawId);
             currentUserId = rawId;
 
-            fb_db.ref('users/' + safeId).once('value').then((snapshot) => {
-                const userData = snapshot.val();
+            fb_db.ref('users/' + safeId).once('value').then((snap) => {
+                const data = snap.val();
                 
                 if (rawId === OWNER_ID) {
-                    if (pass !== OWNER_PASS) return alert("Ошибка пароля владельца!");
+                    if (pass !== OWNER_PASS) return alert("Неверный пароль владельца!");
                     userRole = 'owner';
-                } else if (userData) {
-                    if (userData.pass !== pass) return alert("Этот ID уже занят другим паролем!");
-                    userRole = userData.vip ? 'vip' : 'user';
+                } else if (data) {
+                    if (data.pass !== pass) return alert("ID занят!");
+                    userRole = data.vip ? 'vip' : 'user';
                 } else {
-                    fb_db.ref('users/' + safeId).set({ pass: pass, vip: false });
+                    fb_db.ref('users/' + safeId).set({ pass: pass, vip: false, bonuses: 0 });
                     userRole = 'user';
                 }
 
-                showMain();
-            }).catch(e => alert("Ошибка базы: " + e.message));
+                startApp(safeId);
+            });
         }
 
-        function showMain() {
+        function startApp(safeId) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('id-display').innerText = "Ваш ID: " + currentUserId;
+            document.getElementById('id-display').innerText = "ID: " + currentUserId;
             
             const badge = document.getElementById('role-badge');
             if (userRole === 'owner') {
-                badge.innerHTML = '<b style="color:red;">[ГЛАВНЫЙ АДМИН]</b>';
+                badge.innerHTML = '<span class="status-badge admin">ВЛАДЕЛЕЦ</span>';
                 document.getElementById('admin-controls').classList.remove('hidden');
                 document.getElementById('owner-panel').classList.remove('hidden');
                 document.getElementById('seller-panel').classList.remove('hidden');
             } else if (userRole === 'vip') {
-                badge.innerHTML = '<b style="color:gold;">[VIP ПРОДАВЕЦ]</b>';
+                badge.innerHTML = '<span class="status-badge vip">VIP ПРОДАВЕЦ</span>';
                 document.getElementById('admin-controls').classList.remove('hidden');
                 document.getElementById('seller-panel').classList.remove('hidden');
             } else {
-                badge.innerHTML = '<b style="color:gray;">[ПОКУПАТЕЛЬ]</b>';
+                badge.innerHTML = '<span class="status-badge" style="border:1px solid #444; color:#666;">ПОКУПАТЕЛЬ</span>';
             }
+
+            // Слушаем бонусы в реальном времени
+            fb_db.ref('users/' + safeId + '/bonuses').on('value', (s) => {
+                document.getElementById('balance-val').innerText = s.val() || 0;
+            });
+
             loadProducts();
+        }
+
+        function manageVip(status) {
+            const target = document.getElementById('target-id').value.trim();
+            if (!target) return alert("Введите ID!");
+            fb_db.ref('users/' + clean(target) + '/vip').set(status);
+            alert(status ? "VIP выдан!" : "VIP снят!");
+        }
+
+        function addBonuses() {
+            const target = document.getElementById('target-id').value.trim();
+            const amt = parseInt(document.getElementById('bonus-amt').value);
+            if (!target || isNaN(amt)) return alert("Проверьте ID и сумму!");
+            
+            fb_db.ref('users/' + clean(target) + '/bonuses').transaction((current) => {
+                return (current || 0) + amt;
+            });
+            alert("Бонусы начислены!");
         }
 
         function addProduct() {
             const title = document.getElementById('p-title').value;
             const img = document.getElementById('p-img').value;
+            const desc = document.getElementById('p-desc').value;
             const price = document.getElementById('p-price').value;
-            const tg = document.getElementById('p-tg').value;
+            const tg = document.getElementById('p-tg').value.replace('@','');
             
             if (!title || !price || !tg) return alert("Заполни поля!");
             
             fb_db.ref('products').push({
-                title, img, price, tg, owner: cleanId(currentUserId)
+                title, img, desc, price, tg, owner: clean(currentUserId)
             });
-            alert("Товар добавлен!");
+            alert("Товар опубликован!");
+            document.querySelectorAll('#seller-panel input, #seller-panel textarea').forEach(i => i.value = "");
         }
 
         function loadProducts() {
-            fb_db.ref('products').on('value', (snapshot) => {
+            fb_db.ref('products').on('value', (snap) => {
                 const list = document.getElementById('products-list');
-                list.innerHTML = "";
-                const data = snapshot.val();
+                list.innerHTML = "<h2 style='text-align:center; color:var(--gold);'>ВИТРИНА ТОВАРОВ</h2>";
+                const data = snap.val();
                 if (!data) return;
 
                 Object.keys(data).reverse().forEach(key => {
@@ -152,24 +200,18 @@
                     card.innerHTML = `
                         ${item.img ? `<img src="${item.img}">` : ''}
                         <h3>${item.title}</h3>
+                        <p style="color:#aaa; font-size:0.8rem;">${item.desc || ''}</p>
                         <div class="price">${item.price}</div>
-                        <a href="https://t.me/${item.tg}" style="color:cyan;">Связаться</a>
-                        ${userRole === 'owner' ? `<br><button onclick="deleteProduct('${key}')" style="color:red; margin-top:10px;">Удалить</button>` : ''}
+                        <a href="https://t.me/${item.tg}" target="_blank" class="main-btn" style="text-decoration:none; display:block; background:var(--blue); color:white;">КУПИТЬ</a>
+                        ${(userRole === 'owner' || clean(currentUserId) === item.owner) ? 
+                          `<button class="delete-btn" onclick="deleteProd('${key}')">УДАЛИТЬ ТОВАР</button>` : ''}
                     `;
                     list.appendChild(card);
                 });
             });
         }
 
-        function deleteProduct(key) { if(confirm("Удалить?")) fb_db.ref('products/' + key).remove(); }
-
-        function grantVip() {
-            const target = cleanId(document.getElementById('target-vip-id').value.trim());
-            if (target) {
-                fb_db.ref('users/' + target + '/vip').set(true);
-                alert("VIP выдан!");
-            }
-        }
+        function deleteProd(key) { if(confirm("Удалить этот товар?")) fb_db.ref('products/' + key).remove(); }
     </script>
 </body>
 </html>
